@@ -475,8 +475,11 @@ async function loadGoogleBackend(){
     const [ur,sr]=await Promise.all([googleJsonp('users'),googleJsonp('loadState')]);
     CEWF_USERS=Array.isArray(ur&&ur.users)?ur.users:[];CEWF_USERS_LOADED=true;
     populateUserDepartments();
-    if(sr&&sr.state){const keepHod=S.hodAuth;S=Object.assign({user:null,parts:[],current:null,page:'home',ag:0},sr.state||{});S.user=null;S.hodAuth=keepHod;S.parts=(S.parts||[]).map(normalizePart);if(S.current&&!S.parts.some(p=>p.id===S.current))S.current=null}
+    const savedUser=(()=>{try{return JSON.parse(sessionStorage.getItem('cewf_user')||'null')}catch(e){return null}})();
+    if(sr&&sr.state){const keepHod=S.hodAuth;S=Object.assign({user:null,parts:[],current:null,page:'home',ag:0},sr.state||{});S.user=savedUser;S.hodAuth=keepHod;S.parts=(S.parts||[]).map(normalizePart);if(S.current&&!S.parts.some(p=>p.id===S.current))S.current=null}
+    else if(savedUser){S.user=savedUser}
     CEWF_STATE_LOADED=true;setLoginStatus(CEWF_USERS.length?'Ready — credentials are read from Google Sheets.':'Users sheet is empty — add a user first.');render();
+    startAutoRefresh();
   }catch(err){console.error(err);CEWF_USERS_LOADED=true;setLoginStatus('Google connection failed. Check Web App deployment and Users sheet.');render()}
 }
 function populateUserDepartments(){const sel=document.getElementById('ld');if(!sel)return;const ds=[...new Set(CEWF_USERS.filter(u=>u.active).map(u=>u.department).filter(Boolean))];sel.innerHTML='<option value="">Select Department</option>'+ds.map(d=>'<option value="'+esc(d)+'">'+esc(d)+'</option>').join('')}
@@ -490,11 +493,25 @@ function login(e){
   const rec=CEWF_USERS.find(x=>x.active && x.username.toLowerCase()===u.toLowerCase() && String(x.employee)===String(emp) && x.department===d && String(x.password)===String(p));
   if(!rec){alert('Invalid credentials. Please verify Username, Employee Code, Department and Password in the Users sheet.');return}
   S.user={username:rec.username,employee:rec.employee,department:rec.department,role:rec.role||'User',isHOD:String(rec.role||'').toLowerCase()==='hod'};
+  sessionStorage.setItem('cewf_user',JSON.stringify(S.user));
   S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';S.page='home';save();
   const loginScreen=document.getElementById('login'),appScreen=document.getElementById('app');loginScreen.classList.add('ce-login-exit');
   setTimeout(()=>{loginScreen.style.display='none';appScreen.style.display='block';appScreen.classList.remove('ce-app-pop');void appScreen.offsetWidth;appScreen.classList.add('ce-app-pop');render();setTimeout(()=>appScreen.classList.remove('ce-app-pop'),700);toast('Welcome '+rec.username)},260);
 }
-function logout(){S.user=null;S.hodAuth=false;sessionStorage.removeItem('cewf_hod_auth');save();location.reload()}
+function logout(){S.user=null;S.hodAuth=false;sessionStorage.removeItem('cewf_hod_auth');sessionStorage.removeItem('cewf_user');save();location.reload()}
+let cewfAutoRefreshTimer=null;
+function startAutoRefresh(){
+  if(cewfAutoRefreshTimer)clearInterval(cewfAutoRefreshTimer);
+  cewfAutoRefreshTimer=setInterval(()=>{
+    const app=document.getElementById('app'), login=document.getElementById('login');
+    if(!S.user || !app || app.style.display==='none' || (login && login.style.display!=='none')) return;
+    const active=document.activeElement;
+    const editing=active && /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName);
+    const modalOpen=[...document.querySelectorAll('.modal')].some(x=>x.classList.contains('show') || getComputedStyle(x).display!=='none');
+    if(editing || modalOpen) return;
+    loadGoogleBackend();
+  },3000);
+}
 function page(x){S.page=x;save();render()}function curStatus(p){let a=p.ppap.filter(x=>x.applicable);return a.length?Math.round(a.filter(x=>x.status==='Approved'||x.status==='Submitted').length/a.length*100):100}function counts(p){let c={Assigned:0,'In Progress':0,Submitted:0,Approved:0,Rejected:0,Overdue:0,Skipped:0};p.ppap.forEach(e=>{if(!e.applicable)c.Skipped++;else c[e.status]=(c[e.status]||0)+1});return c}function badge(s){return '<span class="badge status-'+s.toLowerCase().replaceAll(' ','-')+'">'+esc(s)+'</span>'}
 function hodItems(){
   let out=[];
