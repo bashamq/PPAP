@@ -436,9 +436,40 @@ if(S.current && !S.parts.some(p=>p.id===S.current))S.current=null;
 const GOOGLE_CONFIG={WEB_APP_URL:'https://script.google.com/macros/s/AKfycbwhPi2V0QCskFFPRH5v5Mr-JpaLWLbMvLuX58lDTwt40MLosVKlvymt2U2zFgi00HpJ3A/exec',ENABLE_SYNC:true,ENABLE_DRIVE_UPLOAD:true};
 let googleSyncTimer=null,googleSyncBusy=false;
 function googleCleanState(){try{const c=JSON.parse(JSON.stringify(S));(c.parts||[]).forEach(p=>{(p.ppap||[]).forEach(e=>(e.docs||[]).forEach(d=>{delete d.data}));(p.artifact||[]).forEach(g=>(g.items||[]).forEach(x=>(x.docs||[]).forEach(d=>{delete d.data})))});return c}catch(err){return null}}
-function googleSyncNow(){if(!GOOGLE_CONFIG.ENABLE_SYNC||!GOOGLE_CONFIG.WEB_APP_URL||GOOGLE_CONFIG.WEB_APP_URL.indexOf('PASTE_')===0||googleSyncBusy)return;const state=googleCleanState();if(!state)return;googleSyncBusy=true;fetch(GOOGLE_CONFIG.WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'syncState',state:state})}).catch(()=>{}).finally(()=>{googleSyncBusy=false})}
-function syncGoogle(){clearTimeout(googleSyncTimer);googleSyncTimer=setTimeout(googleSyncNow,1200)}
-function googleUploadFile(file,context){if(!GOOGLE_CONFIG.ENABLE_DRIVE_UPLOAD||!GOOGLE_CONFIG.WEB_APP_URL||GOOGLE_CONFIG.WEB_APP_URL.indexOf('PASTE_')===0||!file||file.size>3.5*1024*1024)return;const reader=new FileReader();reader.onload=()=>{const raw=String(reader.result||'');const base64=raw.includes(',')?raw.split(',')[1]:raw;fetch(GOOGLE_CONFIG.WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'uploadFile',fileName:file.name,mimeType:file.type||'application/octet-stream',base64:base64,context:context||{},user:S.user?.username||''})}).catch(()=>{})};reader.readAsDataURL(file)}
+function googlePost(payload){
+  if(!GOOGLE_CONFIG.ENABLE_SYNC||!GOOGLE_CONFIG.WEB_APP_URL||GOOGLE_CONFIG.WEB_APP_URL.indexOf('PASTE_')===0)return false;
+  try{
+    let frame=document.getElementById('googleSyncFrame');
+    if(!frame){
+      frame=document.createElement('iframe'); frame.id='googleSyncFrame'; frame.name='googleSyncFrame';
+      frame.style.display='none'; document.body.appendChild(frame);
+    }
+    const form=document.createElement('form');
+    form.method='POST'; form.action=GOOGLE_CONFIG.WEB_APP_URL; form.target='googleSyncFrame'; form.style.display='none';
+    const input=document.createElement('input'); input.type='hidden'; input.name='payload'; input.value=JSON.stringify(payload);
+    form.appendChild(input); document.body.appendChild(form); form.submit();
+    setTimeout(()=>{try{form.remove()}catch(e){}},1500);
+    return true;
+  }catch(err){console.error('Google sync error',err);return false}
+}
+function googleSyncNow(){
+  if(!GOOGLE_CONFIG.ENABLE_SYNC||!GOOGLE_CONFIG.WEB_APP_URL||GOOGLE_CONFIG.WEB_APP_URL.indexOf('PASTE_')===0||googleSyncBusy)return;
+  const state=googleCleanState(); if(!state)return; googleSyncBusy=true;
+  const ok=googlePost({action:'syncState',state:state});
+  googleSyncBusy=false;
+  if(ok) toast('Google Sheets sync sent ✓'); else toast('Google Sheets sync failed');
+}
+function syncGoogle(){clearTimeout(googleSyncTimer);googleSyncTimer=setTimeout(googleSyncNow,800)}
+function googleUploadFile(file,context){
+  if(!GOOGLE_CONFIG.ENABLE_DRIVE_UPLOAD||!GOOGLE_CONFIG.WEB_APP_URL||GOOGLE_CONFIG.WEB_APP_URL.indexOf('PASTE_')===0||!file||file.size>3.5*1024*1024)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const raw=String(reader.result||''); const base64=raw.includes(',')?raw.split(',')[1]:raw;
+    const ok=googlePost({action:'uploadFile',fileName:file.name,mimeType:file.type||'application/octet-stream',base64:base64,context:context||{},user:S.user?.username||''});
+    if(ok) toast('File sent to Google Drive ✓');
+  };
+  reader.readAsDataURL(file);
+}
 function save(){localStorage.setItem('cewf_v6',JSON.stringify(S));updateHodBadge();syncGoogle()}function uid(){return 'ID-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6)}function now(){return new Date().toLocaleString()}function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function part(){return S.parts.find(p=>p.id===S.current)}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)}
 function login(e){
   e.preventDefault();
