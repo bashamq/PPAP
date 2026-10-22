@@ -371,7 +371,69 @@ html,body{max-width:100%;overflow-x:hidden}.tablewrap{overflow-x:auto;-webkit-ov
   .ce-login{min-height:100svh}.ce-brand{min-height:360px!important;padding:20px 16px!important}.ce-logo-card{height:170px!important;padding:12px!important}.ce-brand-title{font-size:23px!important}.ce-brand-title span{font-size:17px!important}.ce-brand h1{font-size:26px!important;margin-top:22px!important}.ce-brand p{font-size:13px!important;line-height:1.45}.ce-values{gap:9px!important;font-size:11px!important}.ce-loginpanel{padding:10px!important}.ce-loginbox{padding:20px 15px!important;border-radius:18px}.ce-loginbox h2{font-size:26px!important}.ce-secure{font-size:11px}.ce-enter{height:54px!important;font-size:15px!important}.ce-login-note{font-size:11px!important}.ce-inputwrap input,.ce-inputwrap select{height:46px!important}.top{padding:8px 10px!important}.topbrand img{max-width:135px!important;height:auto!important}.content{padding:10px!important}.side{padding:7px!important;gap:5px!important}.nav{font-size:10px!important;padding:8px 10px!important}.head h1{font-size:21px!important}.head p{font-size:11px!important}.cards3,.cards4,.split,.elementgrid,.formgrid,.grid2{grid-template-columns:1fr!important}.btnrow,.actions,.toolbar,.hod-actions{flex-wrap:wrap!important}.btnrow button,.actions button,.toolbar button,.hod-actions button{flex:1 1 auto;min-width:120px}.kpi{padding:12px!important}.modal{padding:8px!important}.modalbox{width:100%!important;max-height:92svh!important;overflow:auto}.home-dashboard .home-stage{padding:12px!important}.home-dashboard .home-workflow-summary{padding:10px!important}.statusflow{overflow-x:auto}.statusstep{min-width:72px}.toast{left:10px;right:10px;bottom:10px;text-align:center}.tablewrap{border-radius:10px}.tablewrap table{font-size:10px}
 }
 @media(min-width:651px) and (max-width:900px){.ce-login{grid-template-columns:1fr}.ce-brand{min-height:480px}.ce-loginbox{max-width:720px}}
-</style></head>
+</style>
+<style id="cewf-mobile-final">
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+img,video,canvas{max-width:100%;height:auto}
+button,input,select,textarea{max-width:100%}
+@media (max-width:760px){
+  .login{grid-template-columns:1fr;min-height:100dvh}
+  .brand{min-height:245px;padding:24px 18px}
+  .brand h1{font-size:25px;margin:16px 0 7px}
+  .brand p{font-size:12px}
+  .logo{width:min(310px,88vw);padding:9px;border-radius:18px}
+  .loginpanel{padding:14px}
+  .loginbox{padding:20px 16px;border-radius:18px;width:100%}
+  .loginbox h2{font-size:23px}
+  .grid2,.formgrid,.cards3,.cards4,.split,.elementgrid,.checks{grid-template-columns:1fr!important}
+  .full{grid-column:auto}
+  .top{min-height:64px;height:auto;padding:8px 10px;gap:8px;flex-wrap:wrap}
+  .topbrand{min-width:0;flex:1}
+  .topbrand img{width:48px;height:38px}
+  .topbrand strong{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .topbrand span{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .top>div:last-child{width:100%;display:flex;justify-content:flex-end}
+  .top .user{gap:6px}
+  .top .avatar{width:30px;height:30px}
+  .top .secondary{padding:7px 10px;font-size:10px}
+  .layout{display:block;min-height:calc(100dvh - 110px)}
+  .side{position:sticky;top:110px;z-index:15;height:auto;padding:6px 8px;display:flex;overflow-x:auto;overflow-y:hidden;gap:5px;white-space:nowrap;-webkit-overflow-scrolling:touch}
+  .side h6{display:none}
+  .nav{width:auto;flex:0 0 auto;padding:8px 10px;font-size:10px;margin:0}
+  .content{padding:12px 10px;max-width:none;width:100%}
+  .head{display:block;margin-bottom:12px}
+  .head h1{font-size:21px}
+  .head p{font-size:11px;line-height:1.45}
+  .activepart,.top-active-part{min-width:0;width:100%;margin-top:10px}
+  .card{padding:13px;border-radius:13px}
+  .action{min-height:145px}
+  .action h3{font-size:17px}
+  .num{font-size:25px}
+  .section{margin:17px 0 9px}
+  .section h2{font-size:16px}
+  .tablewrap,.home-activity{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{min-width:680px}
+  .modal{padding:8px;align-items:flex-start;overflow-y:auto}
+  .modal>div,.modal .modalbox,.modal .card{width:100%!important;max-width:100%!important;max-height:calc(100dvh - 16px);overflow-y:auto}
+  .actions{gap:5px}
+  .small,.primary,.secondary,.goldbtn{min-height:38px}
+  .home-action-grid,.home-kpis{grid-template-columns:1fr!important}
+  .home-workflow-bar{grid-template-columns:1fr!important}
+  .home-stage:not(:last-child):after{content:'↓';right:50%;bottom:-10px;top:auto}
+  .home-workflow-summary{flex-direction:column;align-items:flex-start}
+  .home-bottom-grid{grid-template-columns:1fr!important}
+  .home-table{min-width:650px}
+}
+@media (max-width:420px){
+  .brand{min-height:215px}
+  .brand h1{font-size:21px}
+  .loginbox{padding:17px 13px}
+  .field input,.field select,.field textarea{padding:10px;font-size:14px}
+  .content{padding:9px 7px}
+  .nav{font-size:9px;padding:7px 8px}
+}
+</style>
+</head>
 <body>
 <section id="login" class="login ce-login">
  <div class="brand ce-brand">
@@ -475,16 +537,59 @@ async function loadGoogleBackend(){
     const [ur,sr]=await Promise.all([googleJsonp('users'),googleJsonp('loadState')]);
     CEWF_USERS=Array.isArray(ur&&ur.users)?ur.users:[];CEWF_USERS_LOADED=true;
     populateUserDepartments();
-    const savedUser=(()=>{try{return JSON.parse(sessionStorage.getItem('cewf_user')||'null')}catch(e){return null}})();
-    if(sr&&sr.state){const keepHod=S.hodAuth;S=Object.assign({user:null,parts:[],current:null,page:'home',ag:0},sr.state||{});S.user=savedUser;S.hodAuth=keepHod;S.parts=(S.parts||[]).map(normalizePart);if(S.current&&!S.parts.some(p=>p.id===S.current))S.current=null}
-    else if(savedUser){S.user=savedUser}
-    CEWF_STATE_LOADED=true;setLoginStatus(CEWF_USERS.length?'Ready — credentials are read from Google Sheets.':'Users sheet is empty — add a user first.');render();
-    startAutoRefresh();
+    if(sr&&sr.state){
+      const keepHod=S.hodAuth;
+      const keepUser=S.user;
+      S=Object.assign({user:null,parts:[],current:null,page:'home',ag:0},sr.state||{});
+      S.user=keepUser||null;S.hodAuth=keepHod;
+      S.parts=(S.parts||[]).map(normalizePart);
+      if(S.current&&!S.parts.some(p=>p.id===S.current))S.current=null;
+    }
+    // Restore the logged-in session after a normal browser refresh.
+    try{
+      const raw=sessionStorage.getItem('cewf_session_user');
+      if(raw){
+        const saved=JSON.parse(raw);
+        const rec=CEWF_USERS.find(x=>x.active && x.username.toLowerCase()===String(saved.username||'').toLowerCase() && String(x.employee)===String(saved.employee||'') && x.department===saved.department);
+        if(rec){
+          S.user={username:rec.username,employee:rec.employee,department:rec.department,role:rec.role||'User',isHOD:String(rec.role||'').toLowerCase()==='hod'};
+          S.page=saved.page||'home';
+          S.current=saved.current||S.current||null;
+          S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';
+          const ls=document.getElementById('login'),as=document.getElementById('app');
+          if(ls&&as){ls.style.display='none';as.style.display='block'}
+        }else{sessionStorage.removeItem('cewf_session_user')}
+      }
+    }catch(e){console.warn('Session restore failed',e)}
+    CEWF_STATE_LOADED=true;
+    setLoginStatus(CEWF_USERS.length?'Ready — credentials are read from Google Sheets.':'Users sheet is empty — add a user first.');
+    render();
   }catch(err){console.error(err);CEWF_USERS_LOADED=true;setLoginStatus('Google connection failed. Check Web App deployment and Users sheet.');render()}
 }
+async function googleBackgroundRefresh(){
+  if(!CEWF_USERS_LOADED||!S.user||document.hidden)return;
+  try{
+    const sr=await googleJsonp('loadState');
+    if(sr&&sr.state){
+      const keepUser=S.user,keepPage=S.page,keepCurrent=S.current,keepHod=S.hodAuth;
+      const incoming=Object.assign({user:null,parts:[],current:null,page:'home',ag:0},sr.state||{});
+      S.parts=(incoming.parts||[]).map(normalizePart);
+      S.current=keepCurrent&&S.parts.some(p=>p.id===keepCurrent)?keepCurrent:null;
+      S.page=keepPage||'home';S.user=keepUser;S.hodAuth=keepHod;
+      render();
+    }
+  }catch(e){console.warn('Background refresh failed',e)}
+}
+
 function populateUserDepartments(){const sel=document.getElementById('ld');if(!sel)return;const ds=[...new Set(CEWF_USERS.filter(u=>u.active).map(u=>u.department).filter(Boolean))];sel.innerHTML='<option value="">Select Department</option>'+ds.map(d=>'<option value="'+esc(d)+'">'+esc(d)+'</option>').join('')}
 function setLoginStatus(msg){const el=document.getElementById('ceLoginStatus');if(el)el.textContent=msg}
-function save(){updateHodBadge();syncGoogle()}
+function save(){
+  try{
+    if(S.user) sessionStorage.setItem('cewf_session_user',JSON.stringify({username:S.user.username,employee:S.user.employee,department:S.user.department,page:S.page,current:S.current}));
+    else sessionStorage.removeItem('cewf_session_user');
+  }catch(e){}
+  updateHodBadge();syncGoogle()
+}
 function uid(){return 'ID-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6)}function now(){return new Date().toLocaleString()}function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function part(){return S.parts.find(p=>p.id===S.current)}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)}
 function login(e){
   e.preventDefault();
@@ -493,25 +598,13 @@ function login(e){
   const rec=CEWF_USERS.find(x=>x.active && x.username.toLowerCase()===u.toLowerCase() && String(x.employee)===String(emp) && x.department===d && String(x.password)===String(p));
   if(!rec){alert('Invalid credentials. Please verify Username, Employee Code, Department and Password in the Users sheet.');return}
   S.user={username:rec.username,employee:rec.employee,department:rec.department,role:rec.role||'User',isHOD:String(rec.role||'').toLowerCase()==='hod'};
-  sessionStorage.setItem('cewf_user',JSON.stringify(S.user));
-  S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';S.page='home';save();
+  S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';S.page='home';
+  try{sessionStorage.setItem('cewf_session_user',JSON.stringify({username:S.user.username,employee:S.user.employee,department:S.user.department,page:S.page,current:S.current}))}catch(e){}
+  save();
   const loginScreen=document.getElementById('login'),appScreen=document.getElementById('app');loginScreen.classList.add('ce-login-exit');
   setTimeout(()=>{loginScreen.style.display='none';appScreen.style.display='block';appScreen.classList.remove('ce-app-pop');void appScreen.offsetWidth;appScreen.classList.add('ce-app-pop');render();setTimeout(()=>appScreen.classList.remove('ce-app-pop'),700);toast('Welcome '+rec.username)},260);
 }
-function logout(){S.user=null;S.hodAuth=false;sessionStorage.removeItem('cewf_hod_auth');sessionStorage.removeItem('cewf_user');save();location.reload()}
-let cewfAutoRefreshTimer=null;
-function startAutoRefresh(){
-  if(cewfAutoRefreshTimer)clearInterval(cewfAutoRefreshTimer);
-  cewfAutoRefreshTimer=setInterval(()=>{
-    const app=document.getElementById('app'), login=document.getElementById('login');
-    if(!S.user || !app || app.style.display==='none' || (login && login.style.display!=='none')) return;
-    const active=document.activeElement;
-    const editing=active && /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName);
-    const modalOpen=[...document.querySelectorAll('.modal')].some(x=>x.classList.contains('show') || getComputedStyle(x).display!=='none');
-    if(editing || modalOpen) return;
-    loadGoogleBackend();
-  },3000);
-}
+function logout(){S.user=null;S.hodAuth=false;sessionStorage.removeItem('cewf_hod_auth');sessionStorage.removeItem('cewf_session_user');save();location.reload()}
 function page(x){S.page=x;save();render()}function curStatus(p){let a=p.ppap.filter(x=>x.applicable);return a.length?Math.round(a.filter(x=>x.status==='Approved'||x.status==='Submitted').length/a.length*100):100}function counts(p){let c={Assigned:0,'In Progress':0,Submitted:0,Approved:0,Rejected:0,Overdue:0,Skipped:0};p.ppap.forEach(e=>{if(!e.applicable)c.Skipped++;else c[e.status]=(c[e.status]||0)+1});return c}function badge(s){return '<span class="badge status-'+s.toLowerCase().replaceAll(' ','-')+'">'+esc(s)+'</span>'}
 function hodItems(){
   let out=[];
@@ -686,5 +779,5 @@ function artDelDoc(g,i,d){
 function artToggle(g,i,v){let x=part().artifact[g].items[i];x.done=v;x.history.push({time:now(),action:v?'Completed':'Reopened',by:S.user.username});save();render()}function artEdit(g,i){let x=part().artifact[g].items[i],n=prompt('Edit artifact checklist item:',x.name);if(n&&n!==x.name){x.name=n;x.history.push({time:now(),action:'Edited',by:S.user.username});save();render()}}function artAdd(g){let n=prompt('New artifact checklist item:');if(!n)return;part().artifact[g].items.push({id:uid(),name:n,done:false,assignedTo:part().owner||S.user.username,dueDate:part().target||'',docs:[],history:[{time:now(),action:'Added',by:S.user.username}]});save();render()}function artDel(g,i){if(!confirm('Delete this artifact checklist item?'))return;part().artifact[g].items.splice(i,1);save();render()}
 function history(){let p=part();if(!p)return '<div class="empty"><h2>Select a registered part</h2><button class="primary" onclick="page(\'parts\')">Select Part</button></div>';return '<div class="head"><div><h1>History & Audit Trail</h1><p>Submitted by, approved by, rejected by, checklist and document actions.</p></div></div><div class="card"><div class="timeline">'+(p.history.slice().reverse().map(h=>'<div class="timelineitem"><strong>'+esc(h.action)+' — '+esc(h.by)+'</strong><p>'+esc(h.time)+' · '+esc(h.details||'')+'</p></div>').join('')||'<div class="empty">No history yet.</div>')+'</div></div>'}
 function alerts(){let p=part();if(!p)return '<div class="empty"><h2>Select a registered part</h2><button class="primary" onclick="page(\'parts\')">Select Part</button></div>';let a=p.ppap.filter(e=>e.applicable&&e.dueDate&&new Date(e.dueDate)<new Date()&&!['Submitted','Approved'].includes(e.status));return '<div class="head"><div><h1>Alerts & Deadlines</h1><p>Late submission alerts and deadline monitoring.</p></div></div><div class="card">'+(a.length?a.map(e=>'<div class="alert danger"><b>'+esc(e.name)+'</b> — deadline '+esc(e.dueDate)+' · '+esc(e.status)+' · '+esc(e.assignedTo)+'</div>').join(''):'<div class="alert ok">No overdue active PPAP elements detected.</div>')+'</div><div class="section"><h2>All Active Deadlines</h2></div><div class="tablewrap"><table><thead><tr><th>Element</th><th>Due</th><th>Owner</th><th>Status</th></tr></thead><tbody>'+p.ppap.filter(e=>e.applicable).map(e=>'<tr><td>'+esc(e.name)+'</td><td>'+esc(e.dueDate||'—')+'</td><td>'+esc(e.assignedTo)+'</td><td>'+badge(e.status)+'</td></tr>').join('')+'</tbody></table></div>'}
-document.addEventListener('DOMContentLoaded',()=>{setLoginStatus('Connecting to Google Sheets…');loadGoogleBackend()});
+document.addEventListener('DOMContentLoaded',()=>{setLoginStatus('Connecting to Google Sheets…');loadGoogleBackend();setInterval(googleBackgroundRefresh,2000)});
 </script></body></html>
