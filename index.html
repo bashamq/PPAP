@@ -433,7 +433,7 @@ function normalizePart(p){
 }
 S.parts=(S.parts||[]).map(normalizePart);S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';
 if(S.current && !S.parts.some(p=>p.id===S.current))S.current=null;
-const GOOGLE_CONFIG={WEB_APP_URL:'PASTE_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE',ENABLE_SYNC:true,ENABLE_DRIVE_UPLOAD:true};
+const GOOGLE_CONFIG={WEB_APP_URL:'https://script.google.com/macros/s/AKfycbwhPi2V0QCskFFPRH5v5Mr-JpaLWLbMvLuX58lDTwt40MLosVKlvymt2U2zFgi00HpJ3A/exec',ENABLE_SYNC:true,ENABLE_DRIVE_UPLOAD:true};
 let googleSyncTimer=null,googleSyncBusy=false;
 function googleCleanState(){try{const c=JSON.parse(JSON.stringify(S));(c.parts||[]).forEach(p=>{(p.ppap||[]).forEach(e=>(e.docs||[]).forEach(d=>{delete d.data}));(p.artifact||[]).forEach(g=>(g.items||[]).forEach(x=>(x.docs||[]).forEach(d=>{delete d.data})))});return c}catch(err){return null}}
 function googleSyncNow(){if(!GOOGLE_CONFIG.ENABLE_SYNC||!GOOGLE_CONFIG.WEB_APP_URL||GOOGLE_CONFIG.WEB_APP_URL.indexOf('PASTE_')===0||googleSyncBusy)return;const state=googleCleanState();if(!state)return;googleSyncBusy=true;fetch(GOOGLE_CONFIG.WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'syncState',state:state})}).catch(()=>{}).finally(()=>{googleSyncBusy=false})}
