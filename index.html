@@ -364,7 +364,14 @@ body{background:#eaf2fb;color:var(--cewf-text)}
 }
 </style>
 
-</head>
+<style>
+/* CEWF mobile optimization */
+html,body{max-width:100%;overflow-x:hidden}.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}.tablewrap table{min-width:620px}.top{position:sticky;top:0;z-index:30}.side{z-index:25}.content{min-width:0}.card,.kpi,.element,.artifact,.chart,.tablewrap{max-width:100%;overflow-wrap:anywhere}
+@media(max-width:650px){
+  .ce-login{min-height:100svh}.ce-brand{min-height:360px!important;padding:20px 16px!important}.ce-logo-card{height:170px!important;padding:12px!important}.ce-brand-title{font-size:23px!important}.ce-brand-title span{font-size:17px!important}.ce-brand h1{font-size:26px!important;margin-top:22px!important}.ce-brand p{font-size:13px!important;line-height:1.45}.ce-values{gap:9px!important;font-size:11px!important}.ce-loginpanel{padding:10px!important}.ce-loginbox{padding:20px 15px!important;border-radius:18px}.ce-loginbox h2{font-size:26px!important}.ce-secure{font-size:11px}.ce-enter{height:54px!important;font-size:15px!important}.ce-login-note{font-size:11px!important}.ce-inputwrap input,.ce-inputwrap select{height:46px!important}.top{padding:8px 10px!important}.topbrand img{max-width:135px!important;height:auto!important}.content{padding:10px!important}.side{padding:7px!important;gap:5px!important}.nav{font-size:10px!important;padding:8px 10px!important}.head h1{font-size:21px!important}.head p{font-size:11px!important}.cards3,.cards4,.split,.elementgrid,.formgrid,.grid2{grid-template-columns:1fr!important}.btnrow,.actions,.toolbar,.hod-actions{flex-wrap:wrap!important}.btnrow button,.actions button,.toolbar button,.hod-actions button{flex:1 1 auto;min-width:120px}.kpi{padding:12px!important}.modal{padding:8px!important}.modalbox{width:100%!important;max-height:92svh!important;overflow:auto}.home-dashboard .home-stage{padding:12px!important}.home-dashboard .home-workflow-summary{padding:10px!important}.statusflow{overflow-x:auto}.statusstep{min-width:72px}.toast{left:10px;right:10px;bottom:10px;text-align:center}.tablewrap{border-radius:10px}.tablewrap table{font-size:10px}
+}
+@media(min-width:651px) and (max-width:900px){.ce-login{grid-template-columns:1fr}.ce-brand{min-height:480px}.ce-loginbox{max-width:720px}}
+</style></head>
 <body>
 <section id="login" class="login ce-login">
  <div class="brand ce-brand">
@@ -382,7 +389,7 @@ body{background:#eaf2fb;color:var(--cewf-text)}
  </div>
  <div class="loginpanel ce-loginpanel">
    <form class="loginbox ce-loginbox" onsubmit="login(event)">
-     <div class="ce-login-head"><div><span class="ce-redmark"></span><h2>System Login</h2><div class="sub">Enter your CEWF credentials to continue.</div></div><div class="ce-secure"><span>♜</span><div><b>Secure Access</b><small>Authorized Personnel Only</small></div></div></div>
+     <div class="ce-login-head"><div><span class="ce-redmark"></span><h2>System Login</h2><div class="sub">Enter your CEWF credentials to continue.</div><div id="ceLoginStatus" style="margin-top:7px;font-size:11px;color:#2f73c8;font-weight:800">Connecting to Google Sheets…</div></div><div class="ce-secure"><span>♜</span><div><b>Secure Access</b><small>Authorized Personnel Only</small></div></div></div>
      <div class="field ce-field"><label>Username</label><div class="ce-inputwrap"><span>♟</span><input id="lu" required placeholder="Enter your username"></div></div>
      <div class="grid2 ce-login-grid">
        <div class="field ce-field"><label>Employee Number</label><div class="ce-inputwrap"><span>▣</span><input id="le" required placeholder="Enter employee number"></div></div>
@@ -418,6 +425,9 @@ const AG=[
 ['Packaging, Dispatch & Delivery',['Packaging specification verified','Identification / labels / traceability verified','Quantity and final release verified','Dispatch documents completed','Customer delivery date confirmed','Delivery review completed']],
 ['Customer Feedback & Closure',['Customer feedback recorded','Customer complaints / concerns reviewed','Lessons learned recorded','Corrective actions closed','Process / document changes captured','Project closure review completed']]];
 let S={user:null,parts:[],current:null,page:'home',ag:0};
+let CEWF_USERS=[];
+let CEWF_USERS_LOADED=false;
+let CEWF_STATE_LOADED=false;
 function normalizePart(p){
   if(!p.ppap)p.ppap=[];
   p.ppap.forEach((e,i)=>{
@@ -435,111 +445,56 @@ S.parts=(S.parts||[]).map(normalizePart);S.hodAuth=sessionStorage.getItem('cewf_
 if(S.current && !S.parts.some(p=>p.id===S.current))S.current=null;
 const GOOGLE_CONFIG={WEB_APP_URL:'https://script.google.com/macros/s/AKfycbwhPi2V0QCskFFPRH5v5Mr-JpaLWLbMvLuX58lDTwt40MLosVKlvymt2U2zFgi00HpJ3A/exec',ENABLE_SYNC:true,ENABLE_DRIVE_UPLOAD:true};
 let googleSyncTimer=null,googleSyncBusy=false;
-function googleCleanState(){try{const c=JSON.parse(JSON.stringify(S));(c.parts||[]).forEach(p=>{(p.ppap||[]).forEach(e=>(e.docs||[]).forEach(d=>{delete d.data}));(p.artifact||[]).forEach(g=>(g.items||[]).forEach(x=>(x.docs||[]).forEach(d=>{delete d.data})))});return c}catch(err){return null}}
+function googleCleanState(){try{const c=JSON.parse(JSON.stringify(S));c.user=null;(c.parts||[]).forEach(p=>{(p.ppap||[]).forEach(e=>(e.docs||[]).forEach(d=>{delete d.data}));(p.artifact||[]).forEach(g=>(g.items||[]).forEach(x=>(x.docs||[]).forEach(d=>{delete d.data})))});return c}catch(err){return null}}
 function googlePost(payload){
-  if(!GOOGLE_CONFIG.ENABLE_SYNC||!GOOGLE_CONFIG.WEB_APP_URL||GOOGLE_CONFIG.WEB_APP_URL.indexOf('PASTE_')===0)return false;
-  try{
-    let frame=document.getElementById('googleSyncFrame');
-    if(!frame){
-      frame=document.createElement('iframe'); frame.id='googleSyncFrame'; frame.name='googleSyncFrame';
-      frame.style.display='none'; document.body.appendChild(frame);
-    }
-    const form=document.createElement('form');
-    form.method='POST'; form.action=GOOGLE_CONFIG.WEB_APP_URL; form.target='googleSyncFrame'; form.style.display='none';
-    const input=document.createElement('input'); input.type='hidden'; input.name='payload'; input.value=JSON.stringify(payload);
-    form.appendChild(input); document.body.appendChild(form); form.submit();
-    setTimeout(()=>{try{form.remove()}catch(e){}},1500);
-    return true;
+  if(!GOOGLE_CONFIG.ENABLE_SYNC||!GOOGLE_CONFIG.WEB_APP_URL)return false;
+  try{let frame=document.getElementById('googleSyncFrame');if(!frame){frame=document.createElement('iframe');frame.id='googleSyncFrame';frame.name='googleSyncFrame';frame.style.display='none';document.body.appendChild(frame)}
+    const form=document.createElement('form');form.method='POST';form.action=GOOGLE_CONFIG.WEB_APP_URL;form.target='googleSyncFrame';form.style.display='none';
+    const input=document.createElement('input');input.type='hidden';input.name='payload';input.value=JSON.stringify(payload);form.appendChild(input);document.body.appendChild(form);form.submit();setTimeout(()=>{try{form.remove()}catch(e){}},1800);return true;
   }catch(err){console.error('Google sync error',err);return false}
 }
-function googleSyncNow(){
-  if(!GOOGLE_CONFIG.ENABLE_SYNC||!GOOGLE_CONFIG.WEB_APP_URL||GOOGLE_CONFIG.WEB_APP_URL.indexOf('PASTE_')===0||googleSyncBusy)return;
-  const state=googleCleanState(); if(!state)return; googleSyncBusy=true;
-  const ok=googlePost({action:'syncState',state:state});
-  googleSyncBusy=false;
-  if(ok) toast('Google Sheets saved ✓'); else toast('Google Sheets save failed');
+function googleSyncNow(){if(!GOOGLE_CONFIG.ENABLE_SYNC||!GOOGLE_CONFIG.WEB_APP_URL||googleSyncBusy)return;const state=googleCleanState();if(!state)return;googleSyncBusy=true;const ok=googlePost({action:'syncState',state:state});googleSyncBusy=false;if(ok)toast('Google Sheets sync sent ✓');else toast('Google Sheets sync failed')}
+function syncGoogle(){clearTimeout(googleSyncTimer);googleSyncTimer=setTimeout(googleSyncNow,500)}
+function googleUploadFile(file,context){
+  if(!GOOGLE_CONFIG.ENABLE_DRIVE_UPLOAD||!GOOGLE_CONFIG.WEB_APP_URL||!file||file.size>3.5*1024*1024)return;
+  const reader=new FileReader();reader.onload=()=>{const raw=String(reader.result||'');const base64=raw.includes(',')?raw.split(',')[1]:raw;const ok=googlePost({action:'uploadFile',fileName:file.name,mimeType:file.type||'application/octet-stream',base64,context:context||{},user:S.user?.username||''});if(ok)toast('File sent to Google Drive ✓')};reader.readAsDataURL(file);
 }
-function syncGoogle(){clearTimeout(googleSyncTimer);googleSyncTimer=setTimeout(googleSyncNow,300)}
-function loadGoogleState(){
-  return new Promise(resolve=>{
-    if(!GOOGLE_CONFIG.ENABLE_SYNC||!GOOGLE_CONFIG.WEB_APP_URL){resolve(false);return;}
-    const cb='cewfLoad_'+Date.now(); let done=false;
-    const finish=(ok)=>{if(done)return;done=true;clearTimeout(timer);try{script.remove()}catch(e){};try{delete window[cb]}catch(e){};resolve(ok)};
-    window[cb]=(data)=>{
-      try{
-        if(data&&data.ok&&data.state&&Array.isArray(data.state.parts)){
-          S=data.state;
-          S.parts=(S.parts||[]).map(normalizePart);
-          S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';
-          if(S.current&&!S.parts.some(p=>p.id===S.current))S.current=null;
-          // One-time migration only: if Google Sheet is empty and the previous version
-          // still has data in localStorage, move it to Google Sheet and then delete it.
-          if((S.parts||[]).length===0){
-            try{
-              const legacy=JSON.parse(localStorage.getItem('cewf_v6')||'null');
-              if(legacy&&Array.isArray(legacy.parts)&&legacy.parts.length){
-                S=legacy;
-                S.parts=(S.parts||[]).map(normalizePart);
-                S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';
-                googleSyncNow();
-                localStorage.removeItem('cewf_v6');
-                toast('Old local data moved to Google Sheets ✓');
-              }
-            }catch(e){console.warn('Legacy migration skipped',e)}
-          }
-          finish(true); return;
-        }
-      }catch(e){console.error('Google state load error',e)}
-      finish(false);
-    };
-    const script=document.createElement('script');
-    script.src=GOOGLE_CONFIG.WEB_APP_URL+'?action=getState&callback='+encodeURIComponent(cb)+'&_='+Date.now();
-    script.onerror=()=>finish(false);
-    document.head.appendChild(script);
-    const timer=setTimeout(()=>finish(false),8000);
+function googleJsonp(action){
+  return new Promise((resolve,reject)=>{
+    if(!GOOGLE_CONFIG.WEB_APP_URL){reject(new Error('Web App URL missing'));return}
+    const cb='cewf_cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');script.async=true;script.src=GOOGLE_CONFIG.WEB_APP_URL+'?action='+encodeURIComponent(action)+'&callback='+encodeURIComponent(cb);
+    const timer=setTimeout(()=>{cleanup();reject(new Error('Google backend timeout'))},10000);
+    window[cb]=(data)=>{clearTimeout(timer);cleanup();resolve(data)};
+    function cleanup(){try{delete window[cb]}catch(e){window[cb]=undefined}try{script.remove()}catch(e){}}
+    script.onerror=()=>{clearTimeout(timer);cleanup();reject(new Error('Google backend request failed'))};document.head.appendChild(script);
   });
 }
-function googleUploadFile(file,context){
-  if(!GOOGLE_CONFIG.ENABLE_DRIVE_UPLOAD||!GOOGLE_CONFIG.WEB_APP_URL||GOOGLE_CONFIG.WEB_APP_URL.indexOf('PASTE_')===0||!file||file.size>3.5*1024*1024)return;
-  const reader=new FileReader();
-  reader.onload=()=>{
-    const raw=String(reader.result||''); const base64=raw.includes(',')?raw.split(',')[1]:raw;
-    const ok=googlePost({action:'uploadFile',fileName:file.name,mimeType:file.type||'application/octet-stream',base64:base64,context:context||{},user:S.user?.username||''});
-    if(ok) toast('File sent to Google Drive ✓');
-  };
-  reader.readAsDataURL(file);
+async function loadGoogleBackend(){
+  try{
+    const [ur,sr]=await Promise.all([googleJsonp('users'),googleJsonp('loadState')]);
+    CEWF_USERS=Array.isArray(ur&&ur.users)?ur.users:[];CEWF_USERS_LOADED=true;
+    populateUserDepartments();
+    if(sr&&sr.state){const keepHod=S.hodAuth;S=Object.assign({user:null,parts:[],current:null,page:'home',ag:0},sr.state||{});S.user=null;S.hodAuth=keepHod;S.parts=(S.parts||[]).map(normalizePart);if(S.current&&!S.parts.some(p=>p.id===S.current))S.current=null}
+    CEWF_STATE_LOADED=true;setLoginStatus(CEWF_USERS.length?'Ready — credentials are read from Google Sheets.':'Users sheet is empty — add a user first.');render();
+  }catch(err){console.error(err);CEWF_USERS_LOADED=true;setLoginStatus('Google connection failed. Check Web App deployment and Users sheet.');render()}
 }
-function save(){updateHodBadge();syncGoogle()}function uid(){return 'ID-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6)}function now(){return new Date().toLocaleString()}function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function part(){return S.parts.find(p=>p.id===S.current)}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)}
+function populateUserDepartments(){const sel=document.getElementById('ld');if(!sel)return;const ds=[...new Set(CEWF_USERS.filter(u=>u.active).map(u=>u.department).filter(Boolean))];sel.innerHTML='<option value="">Select Department</option>'+ds.map(d=>'<option value="'+esc(d)+'">'+esc(d)+'</option>').join('')}
+function setLoginStatus(msg){const el=document.getElementById('ceLoginStatus');if(el)el.textContent=msg}
+function save(){updateHodBadge();syncGoogle()}
+function uid(){return 'ID-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6)}function now(){return new Date().toLocaleString()}function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function part(){return S.parts.find(p=>p.id===S.current)}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)}
 function login(e){
   e.preventDefault();
+  if(!CEWF_USERS_LOADED){alert('Please wait. User list is still loading from Google Sheets.');return}
   let u=lu.value.trim(),emp=le.value.trim(),d=ld.value,p=lp.value;
-  let ok=(u==='areen'&&emp==='11093'&&d==='Design & Development'&&p==='1234');
-  if(!ok){
-    alert('Invalid CEWF credentials. Please verify your username, employee number, department and password.');
-    return;
-  }
-
-  S.user={username:u,employee:emp,department:d,isHOD:false};
-  S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';
-  S.page='home';
-  save();
-
-  const loginScreen=document.getElementById('login');
-  const appScreen=document.getElementById('app');
-
-  /* Hide authentication details and reveal the existing second page as a clean pop-up transition. */
-  loginScreen.classList.add('ce-login-exit');
-  setTimeout(()=>{
-    loginScreen.style.display='none';
-    appScreen.style.display='block';
-    appScreen.classList.remove('ce-app-pop');
-    void appScreen.offsetWidth;
-    appScreen.classList.add('ce-app-pop');
-    render();
-    setTimeout(()=>appScreen.classList.remove('ce-app-pop'),700);
-    toast('Welcome '+u);
-  },260);
-}function logout(){S.user=null;S.hodAuth=false;sessionStorage.removeItem('cewf_hod_auth');save();location.reload()}
+  const rec=CEWF_USERS.find(x=>x.active && x.username.toLowerCase()===u.toLowerCase() && String(x.employee)===String(emp) && x.department===d && String(x.password)===String(p));
+  if(!rec){alert('Invalid credentials. Please verify Username, Employee Code, Department and Password in the Users sheet.');return}
+  S.user={username:rec.username,employee:rec.employee,department:rec.department,role:rec.role||'User',isHOD:String(rec.role||'').toLowerCase()==='hod'};
+  S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';S.page='home';save();
+  const loginScreen=document.getElementById('login'),appScreen=document.getElementById('app');loginScreen.classList.add('ce-login-exit');
+  setTimeout(()=>{loginScreen.style.display='none';appScreen.style.display='block';appScreen.classList.remove('ce-app-pop');void appScreen.offsetWidth;appScreen.classList.add('ce-app-pop');render();setTimeout(()=>appScreen.classList.remove('ce-app-pop'),700);toast('Welcome '+rec.username)},260);
+}
+function logout(){S.user=null;S.hodAuth=false;sessionStorage.removeItem('cewf_hod_auth');save();location.reload()}
 function page(x){S.page=x;save();render()}function curStatus(p){let a=p.ppap.filter(x=>x.applicable);return a.length?Math.round(a.filter(x=>x.status==='Approved'||x.status==='Submitted').length/a.length*100):100}function counts(p){let c={Assigned:0,'In Progress':0,Submitted:0,Approved:0,Rejected:0,Overdue:0,Skipped:0};p.ppap.forEach(e=>{if(!e.applicable)c.Skipped++;else c[e.status]=(c[e.status]||0)+1});return c}function badge(s){return '<span class="badge status-'+s.toLowerCase().replaceAll(' ','-')+'">'+esc(s)+'</span>'}
 function hodItems(){
   let out=[];
@@ -584,7 +539,7 @@ function hodReview(pi,ei){
 function hodViewFile(pi,ei,di){let f=S.parts[pi]?.ppap[ei]?.docs?.[di];if(!f||!f.data){alert('This document has no stored file data available for viewing.');return}let w=window.open();if(!w){alert('Please allow pop-ups in the browser to view the submitted file.');return}w.document.write('<title>'+esc(f.name||'Submitted Document')+'</title><style>body{margin:0;background:#18293B;color:white;font-family:Arial,sans-serif;display:grid;place-items:center;min-height:100vh}img{max-width:100%;max-height:100vh;object-fit:contain}iframe{width:100%;height:100vh;border:0;background:white}</style>');if(String(f.data).startsWith('data:image/'))w.document.write('<img src="'+f.data+'">');else if(String(f.data).startsWith('data:application/pdf'))w.document.write('<iframe src="'+f.data+'"></iframe>');else w.document.write('<div><h2>'+esc(f.name||'Submitted Document')+'</h2><p>This file type is available through Download.</p></div>');w.document.close()}
 function hodDownload(pi,ei,di){let f=S.parts[pi]?.ppap[ei]?.docs?.[di];if(!f||!f.data){alert('This document has no stored file data in the offline prototype.');return}let a=document.createElement('a');a.href=f.data;a.download=f.name||'PPAP_Document';document.body.appendChild(a);a.click();a.remove()}
 function hodDecision(pi,ei,decision){if(!S.user||!S.hodAuth){alert('HOD portal authentication is required for approval decisions.');return}let e=S.parts[pi].ppap[ei];if(e.status!=='Submitted'){alert('Only submitted elements can be approved or rejected by the HOD.');return}if(decision==='Approved'){e.status='Approved';e.completion=100;e.approvedBy=S.user.username;e.history=e.history||[];e.history.push({time:now(),action:'HOD Approved',by:S.user.username,details:'Approved from HOD Approval Portal.'})}else{let reason=prompt('Enter rejection reason / corrective action required:');if(reason===null)return;reason=reason.trim()||'Corrective action required.';e.status='Rejected';e.rejectedBy=S.user.username;e.rejectionReason=reason;e.history=e.history||[];e.history.push({time:now(),action:'HOD Rejected',by:S.user.username,details:reason})}S.parts[pi].history.push({time:now(),action:'HOD decision',by:S.user.username,details:e.no+' '+e.name+' → '+decision+(e.rejectionReason?' — '+e.rejectionReason:'')});save();render();toast('HOD decision recorded: '+decision)}
-function refreshOverdueStatuses(){let changed=false;let t=new Date();(S.parts||[]).forEach(p=>(p.ppap||[]).forEach(e=>{if(!e.applicable||!e.dueDate)return;let late=new Date(e.dueDate+'T23:59:59')<t;if(late&&!['Submitted','Approved','Rejected','Skipped','Overdue'].includes(e.status)){e.status='Overdue';e.history=e.history||[];e.history.push({time:now(),action:'Overdue',by:'System',details:'Due date passed without submission.'});changed=true}}));if(changed)save();}
+function refreshOverdueStatuses(){let changed=false;let t=new Date();(S.parts||[]).forEach(p=>(p.ppap||[]).forEach(e=>{if(!e.applicable||!e.dueDate)return;let late=new Date(e.dueDate+'T23:59:59')<t;if(late&&!['Submitted','Approved','Rejected','Skipped','Overdue'].includes(e.status)){e.status='Overdue';e.history=e.history||[];e.history.push({time:now(),action:'Overdue',by:'System',details:'Due date passed without submission.'});changed=true}}));if(changed)syncGoogle();}
 function render(){if(!S.user)return;refreshOverdueStatuses();userinfo.innerHTML='<b>'+esc(S.user.username)+'</b><div style="font-size:9px;color:#777">'+esc(S.user.department)+' · Emp. '+esc(S.user.employee)+'</div>';avatar.textContent=S.user.username[0].toUpperCase();let tp=part();document.getElementById('topactive').innerHTML=tp?'<div class="top-active-part"><div><small>ACTIVE PART</small><strong>'+esc(tp.partNo)+' · '+esc(tp.partName)+'</strong><span style="display:block;font-size:9px;color:#5c7390;margin-top:3px">PPAP Level: '+esc(tp.level||'Level 3')+' · Owner: '+esc(tp.owner||'—')+'</span></div><div class="top-online">System Online</div></div>':'';updateHodBadge();document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.p===S.page));let f={home:home,parts:parts,ppap:ppap,artifact:artifact,track:track,history:history,alerts:alerts,hodPortal:hodPortal}[S.page]||home;main.innerHTML=f()}
 function home(){
   let p=part(), pc=p?curStatus(p):0, c=p?counts(p):null;
@@ -714,14 +669,5 @@ function artDelDoc(g,i,d){
 function artToggle(g,i,v){let x=part().artifact[g].items[i];x.done=v;x.history.push({time:now(),action:v?'Completed':'Reopened',by:S.user.username});save();render()}function artEdit(g,i){let x=part().artifact[g].items[i],n=prompt('Edit artifact checklist item:',x.name);if(n&&n!==x.name){x.name=n;x.history.push({time:now(),action:'Edited',by:S.user.username});save();render()}}function artAdd(g){let n=prompt('New artifact checklist item:');if(!n)return;part().artifact[g].items.push({id:uid(),name:n,done:false,assignedTo:part().owner||S.user.username,dueDate:part().target||'',docs:[],history:[{time:now(),action:'Added',by:S.user.username}]});save();render()}function artDel(g,i){if(!confirm('Delete this artifact checklist item?'))return;part().artifact[g].items.splice(i,1);save();render()}
 function history(){let p=part();if(!p)return '<div class="empty"><h2>Select a registered part</h2><button class="primary" onclick="page(\'parts\')">Select Part</button></div>';return '<div class="head"><div><h1>History & Audit Trail</h1><p>Submitted by, approved by, rejected by, checklist and document actions.</p></div></div><div class="card"><div class="timeline">'+(p.history.slice().reverse().map(h=>'<div class="timelineitem"><strong>'+esc(h.action)+' — '+esc(h.by)+'</strong><p>'+esc(h.time)+' · '+esc(h.details||'')+'</p></div>').join('')||'<div class="empty">No history yet.</div>')+'</div></div>'}
 function alerts(){let p=part();if(!p)return '<div class="empty"><h2>Select a registered part</h2><button class="primary" onclick="page(\'parts\')">Select Part</button></div>';let a=p.ppap.filter(e=>e.applicable&&e.dueDate&&new Date(e.dueDate)<new Date()&&!['Submitted','Approved'].includes(e.status));return '<div class="head"><div><h1>Alerts & Deadlines</h1><p>Late submission alerts and deadline monitoring.</p></div></div><div class="card">'+(a.length?a.map(e=>'<div class="alert danger"><b>'+esc(e.name)+'</b> — deadline '+esc(e.dueDate)+' · '+esc(e.status)+' · '+esc(e.assignedTo)+'</div>').join(''):'<div class="alert ok">No overdue active PPAP elements detected.</div>')+'</div><div class="section"><h2>All Active Deadlines</h2></div><div class="tablewrap"><table><thead><tr><th>Element</th><th>Due</th><th>Owner</th><th>Status</th></tr></thead><tbody>'+p.ppap.filter(e=>e.applicable).map(e=>'<tr><td>'+esc(e.name)+'</td><td>'+esc(e.dueDate||'—')+'</td><td>'+esc(e.assignedTo)+'</td><td>'+badge(e.status)+'</td></tr>').join('')+'</tbody></table></div>'}
-if(S.user){S.page='home';save();login.style.display='none';app.style.display='block';render()}
-</script>
-<script>
-window.addEventListener('DOMContentLoaded',()=>{
-  loadGoogleState().then(ok=>{
-    if(ok){ updateHodBadge(); }
-    else { console.warn('Google Sheet state not loaded; using empty in-memory state.'); }
-  });
-});
-</script>
-</body></html>
+document.addEventListener('DOMContentLoaded',()=>{setLoginStatus('Connecting to Google Sheets…');loadGoogleBackend()});
+</script></body></html>
