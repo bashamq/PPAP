@@ -486,7 +486,8 @@ const AG=[
 ['Quality Release & PPAP',['Final inspection completed','Nonconformities dispositioned','PPAP 18 elements reviewed','PSW prepared','Internal PPAP review completed','HOD approval completed','Customer submission completed']],
 ['Packaging, Dispatch & Delivery',['Packaging specification verified','Identification / labels / traceability verified','Quantity and final release verified','Dispatch documents completed','Customer delivery date confirmed','Delivery review completed']],
 ['Customer Feedback & Closure',['Customer feedback recorded','Customer complaints / concerns reviewed','Lessons learned recorded','Corrective actions closed','Process / document changes captured','Project closure review completed']]];
-let S={user:null,parts:[],current:null,page:'home',ag:0};
+let S={user:null,parts:[],current:null,page:'home',ag:0,hodAuth:false,hodUser:null};
+try{S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';try{S.hodUser=JSON.parse(sessionStorage.getItem('cewf_hod_user')||'null')}catch(e){S.hodUser=null}S.hodUser=JSON.parse(sessionStorage.getItem('cewf_hod_user')||'null')}catch(e){S.hodAuth=false;S.hodUser=null}
 let CEWF_USERS=[];
 let CEWF_USERS_LOADED=false;
 let CEWF_STATE_LOADED=false;
@@ -503,7 +504,7 @@ function normalizePart(p){
   p.history=Array.isArray(p.history)?p.history:[];
   return p;
 }
-S.parts=(S.parts||[]).map(normalizePart);S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';
+S.parts=(S.parts||[]).map(normalizePart);S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';try{S.hodUser=JSON.parse(sessionStorage.getItem('cewf_hod_user')||'null')}catch(e){S.hodUser=null}
 if(S.current && !S.parts.some(p=>p.id===S.current))S.current=null;
 const GOOGLE_CONFIG={WEB_APP_URL:'https://script.google.com/macros/s/AKfycbwhPi2V0QCskFFPRH5v5Mr-JpaLWLbMvLuX58lDTwt40MLosVKlvymt2U2zFgi00HpJ3A/exec',ENABLE_SYNC:true,ENABLE_DRIVE_UPLOAD:true};
 let googleSyncTimer=null,googleSyncBusy=false;
@@ -555,7 +556,7 @@ async function loadGoogleBackend(){
           S.user={username:rec.username,employee:rec.employee,department:rec.department,role:rec.role||'User',isHOD:String(rec.role||'').toLowerCase()==='hod'};
           S.page=saved.page||'home';
           S.current=saved.current||S.current||null;
-          S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';
+          S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';try{S.hodUser=JSON.parse(sessionStorage.getItem('cewf_hod_user')||'null')}catch(e){S.hodUser=null}
           const ls=document.getElementById('login'),as=document.getElementById('app');
           if(ls&&as){ls.style.display='none';as.style.display='block'}
         }else{sessionStorage.removeItem('cewf_session_user')}
@@ -598,7 +599,7 @@ function login(e){
   const rec=CEWF_USERS.find(x=>x.active && x.username.toLowerCase()===u.toLowerCase() && String(x.employee)===String(emp) && x.department===d && String(x.password)===String(p));
   if(!rec){alert('Invalid credentials. Please verify Username, Employee Code, Department and Password in the Users sheet.');return}
   S.user={username:rec.username,employee:rec.employee,department:rec.department,role:rec.role||'User',isHOD:String(rec.role||'').toLowerCase()==='hod'};
-  S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';S.page='home';
+  S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';try{S.hodUser=JSON.parse(sessionStorage.getItem('cewf_hod_user')||'null')}catch(e){S.hodUser=null}S.page='home';
   try{sessionStorage.setItem('cewf_session_user',JSON.stringify({username:S.user.username,employee:S.user.employee,department:S.user.department,page:S.page,current:S.current}))}catch(e){}
   save();
   const loginScreen=document.getElementById('login'),appScreen=document.getElementById('app');loginScreen.classList.add('ce-login-exit');
@@ -621,13 +622,13 @@ function updateHodBadge(){
   let b=document.getElementById('hodBadge');if(b)b.textContent=hodItems().length;
 }
 function hodSignIn(){mt.textContent='HOD Approval Portal Sign-In';mb.innerHTML='<div class="field"><label>Username</label><input id="hu" value="" autocomplete="username"></div><div class="field"><label>Password</label><input id="hp" type="password" value="" autocomplete="current-password"></div><div class="note"><b>Secure HOD access.</b><br>Approval controls are available only after authenticated HOD sign-in.</div>';mf.innerHTML='<button class="secondary" onclick="closeModal()">Cancel</button><button class="primary" onclick="verifyHod()">Sign In</button>';modal.classList.add('show');modal.classList.add('darkmodal')}
-function verifyHod(){if(hu.value.trim()==='areen'&&hp.value==='1234'){S.hodAuth=true;sessionStorage.setItem('cewf_hod_auth','1');save();closeModal();page('hodPortal');toast('HOD portal authenticated')}else alert('Invalid HOD portal credentials. Please verify your sign-in details.')}
-function hodSignOut(){S.hodAuth=false;sessionStorage.removeItem('cewf_hod_auth');save();page('home');toast('HOD portal signed out')}
+function verifyHod(){if(!CEWF_USERS_LOADED){alert('Please wait. User list is still loading from Google Sheets.');return}var username=hu.value.trim(),password=hp.value;var rec=CEWF_USERS.find(function(x){return x.active&&String(x.username||'').trim().toLowerCase()===username.toLowerCase()&&String(x.password||'')===String(password)&&String(x.role||'').trim().toUpperCase()==='HOD'});if(!rec){alert('Invalid HOD credentials. Please verify Username, Password and Role = HOD in the Users sheet.');return}S.hodAuth=true;S.hodUser={username:rec.username,employee:rec.employee,department:rec.department,role:rec.role};sessionStorage.setItem('cewf_hod_auth','1');sessionStorage.setItem('cewf_hod_user',JSON.stringify(S.hodUser));save();closeModal();page('hodPortal');toast('HOD portal authenticated')}
+function hodSignOut(){S.hodAuth=false;S.hodUser=null;sessionStorage.removeItem('cewf_hod_auth');sessionStorage.removeItem('cewf_hod_user');save();page('home');toast('HOD portal signed out')}
 function hodPortal(){
   let items=hodItems();
   if(!S.hodAuth){return '<div class="head"><div><h1>HOD Approval Portal</h1><p>Separate authenticated portal for HOD review, approval and rejection.</p></div></div><div class="card"><h2>HOD authentication required</h2><p class="meta">Approval and rejection controls are locked until the HOD portal sign-in is completed.</p><button class="primary" onclick="hodSignIn()">Sign In to HOD Portal</button></div>';}
   let submitted=items.filter(x=>x.type==='submitted').length,overdue=items.filter(x=>x.type==='overdue').length;
-  return '<div class="head"><div><h1>HOD Approval Portal</h1><p>Review PPAP submissions, receive overdue alerts and set the next approval status.</p></div><div class="activepart"><small>HOD USER</small><strong>'+esc(S.user.username)+'</strong><button class="small" style="margin-left:10px;background:white" onclick="hodSignOut()">Sign Out</button></div></div>'+
+  return '<div class="head"><div><h1>HOD Approval Portal</h1><p>Review PPAP submissions, receive overdue alerts and set the next approval status.</p></div><div class="activepart"><small>HOD USER</small><strong>'+esc((S.hodUser&&S.hodUser.username)||S.user.username)+'</strong><button class="small" style="margin-left:10px;background:white" onclick="hodSignOut()">Sign Out</button></div></div>'+
   '<div class="cards4"><div class="kpi red"><div class="num">'+submitted+'</div><div class="label">Awaiting Approval</div></div><div class="kpi blue"><div class="num">'+overdue+'</div><div class="label">Overdue Alerts</div></div><div class="kpi gold"><div class="num">'+S.parts.length+'</div><div class="label">Registered Parts</div></div><div class="kpi green"><div class="num">'+S.parts.reduce((a,p)=>a+p.ppap.filter(e=>e.status==='Approved').length,0)+'</div><div class="label">Approved Elements</div></div></div>'+
   '<div class="section"><h2>Submission Alerts</h2><p class="meta">Newly submitted elements appear here for HOD review. Overdue items remain visible until their status is updated.</p></div>'+
   (items.length?items.map(x=>{
