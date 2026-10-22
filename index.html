@@ -417,7 +417,7 @@ const AG=[
 ['Quality Release & PPAP',['Final inspection completed','Nonconformities dispositioned','PPAP 18 elements reviewed','PSW prepared','Internal PPAP review completed','HOD approval completed','Customer submission completed']],
 ['Packaging, Dispatch & Delivery',['Packaging specification verified','Identification / labels / traceability verified','Quantity and final release verified','Dispatch documents completed','Customer delivery date confirmed','Delivery review completed']],
 ['Customer Feedback & Closure',['Customer feedback recorded','Customer complaints / concerns reviewed','Lessons learned recorded','Corrective actions closed','Process / document changes captured','Project closure review completed']]];
-let S=JSON.parse(localStorage.getItem('cewf_v6')||'null')||{user:null,parts:[],current:null,page:'home',ag:0};
+let S={user:null,parts:[],current:null,page:'home',ag:0};
 function normalizePart(p){
   if(!p.ppap)p.ppap=[];
   p.ppap.forEach((e,i)=>{
@@ -457,9 +457,48 @@ function googleSyncNow(){
   const state=googleCleanState(); if(!state)return; googleSyncBusy=true;
   const ok=googlePost({action:'syncState',state:state});
   googleSyncBusy=false;
-  if(ok) toast('Google Sheets sync sent ✓'); else toast('Google Sheets sync failed');
+  if(ok) toast('Google Sheets saved ✓'); else toast('Google Sheets save failed');
 }
-function syncGoogle(){clearTimeout(googleSyncTimer);googleSyncTimer=setTimeout(googleSyncNow,800)}
+function syncGoogle(){clearTimeout(googleSyncTimer);googleSyncTimer=setTimeout(googleSyncNow,300)}
+function loadGoogleState(){
+  return new Promise(resolve=>{
+    if(!GOOGLE_CONFIG.ENABLE_SYNC||!GOOGLE_CONFIG.WEB_APP_URL){resolve(false);return;}
+    const cb='cewfLoad_'+Date.now(); let done=false;
+    const finish=(ok)=>{if(done)return;done=true;clearTimeout(timer);try{script.remove()}catch(e){};try{delete window[cb]}catch(e){};resolve(ok)};
+    window[cb]=(data)=>{
+      try{
+        if(data&&data.ok&&data.state&&Array.isArray(data.state.parts)){
+          S=data.state;
+          S.parts=(S.parts||[]).map(normalizePart);
+          S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';
+          if(S.current&&!S.parts.some(p=>p.id===S.current))S.current=null;
+          // One-time migration only: if Google Sheet is empty and the previous version
+          // still has data in localStorage, move it to Google Sheet and then delete it.
+          if((S.parts||[]).length===0){
+            try{
+              const legacy=JSON.parse(localStorage.getItem('cewf_v6')||'null');
+              if(legacy&&Array.isArray(legacy.parts)&&legacy.parts.length){
+                S=legacy;
+                S.parts=(S.parts||[]).map(normalizePart);
+                S.hodAuth=sessionStorage.getItem('cewf_hod_auth')==='1';
+                googleSyncNow();
+                localStorage.removeItem('cewf_v6');
+                toast('Old local data moved to Google Sheets ✓');
+              }
+            }catch(e){console.warn('Legacy migration skipped',e)}
+          }
+          finish(true); return;
+        }
+      }catch(e){console.error('Google state load error',e)}
+      finish(false);
+    };
+    const script=document.createElement('script');
+    script.src=GOOGLE_CONFIG.WEB_APP_URL+'?action=getState&callback='+encodeURIComponent(cb)+'&_='+Date.now();
+    script.onerror=()=>finish(false);
+    document.head.appendChild(script);
+    const timer=setTimeout(()=>finish(false),8000);
+  });
+}
 function googleUploadFile(file,context){
   if(!GOOGLE_CONFIG.ENABLE_DRIVE_UPLOAD||!GOOGLE_CONFIG.WEB_APP_URL||GOOGLE_CONFIG.WEB_APP_URL.indexOf('PASTE_')===0||!file||file.size>3.5*1024*1024)return;
   const reader=new FileReader();
@@ -470,7 +509,7 @@ function googleUploadFile(file,context){
   };
   reader.readAsDataURL(file);
 }
-function save(){localStorage.setItem('cewf_v6',JSON.stringify(S));updateHodBadge();syncGoogle()}function uid(){return 'ID-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6)}function now(){return new Date().toLocaleString()}function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function part(){return S.parts.find(p=>p.id===S.current)}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)}
+function save(){updateHodBadge();syncGoogle()}function uid(){return 'ID-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6)}function now(){return new Date().toLocaleString()}function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function part(){return S.parts.find(p=>p.id===S.current)}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)}
 function login(e){
   e.preventDefault();
   let u=lu.value.trim(),emp=le.value.trim(),d=ld.value,p=lp.value;
@@ -545,7 +584,7 @@ function hodReview(pi,ei){
 function hodViewFile(pi,ei,di){let f=S.parts[pi]?.ppap[ei]?.docs?.[di];if(!f||!f.data){alert('This document has no stored file data available for viewing.');return}let w=window.open();if(!w){alert('Please allow pop-ups in the browser to view the submitted file.');return}w.document.write('<title>'+esc(f.name||'Submitted Document')+'</title><style>body{margin:0;background:#18293B;color:white;font-family:Arial,sans-serif;display:grid;place-items:center;min-height:100vh}img{max-width:100%;max-height:100vh;object-fit:contain}iframe{width:100%;height:100vh;border:0;background:white}</style>');if(String(f.data).startsWith('data:image/'))w.document.write('<img src="'+f.data+'">');else if(String(f.data).startsWith('data:application/pdf'))w.document.write('<iframe src="'+f.data+'"></iframe>');else w.document.write('<div><h2>'+esc(f.name||'Submitted Document')+'</h2><p>This file type is available through Download.</p></div>');w.document.close()}
 function hodDownload(pi,ei,di){let f=S.parts[pi]?.ppap[ei]?.docs?.[di];if(!f||!f.data){alert('This document has no stored file data in the offline prototype.');return}let a=document.createElement('a');a.href=f.data;a.download=f.name||'PPAP_Document';document.body.appendChild(a);a.click();a.remove()}
 function hodDecision(pi,ei,decision){if(!S.user||!S.hodAuth){alert('HOD portal authentication is required for approval decisions.');return}let e=S.parts[pi].ppap[ei];if(e.status!=='Submitted'){alert('Only submitted elements can be approved or rejected by the HOD.');return}if(decision==='Approved'){e.status='Approved';e.completion=100;e.approvedBy=S.user.username;e.history=e.history||[];e.history.push({time:now(),action:'HOD Approved',by:S.user.username,details:'Approved from HOD Approval Portal.'})}else{let reason=prompt('Enter rejection reason / corrective action required:');if(reason===null)return;reason=reason.trim()||'Corrective action required.';e.status='Rejected';e.rejectedBy=S.user.username;e.rejectionReason=reason;e.history=e.history||[];e.history.push({time:now(),action:'HOD Rejected',by:S.user.username,details:reason})}S.parts[pi].history.push({time:now(),action:'HOD decision',by:S.user.username,details:e.no+' '+e.name+' → '+decision+(e.rejectionReason?' — '+e.rejectionReason:'')});save();render();toast('HOD decision recorded: '+decision)}
-function refreshOverdueStatuses(){let changed=false;let t=new Date();(S.parts||[]).forEach(p=>(p.ppap||[]).forEach(e=>{if(!e.applicable||!e.dueDate)return;let late=new Date(e.dueDate+'T23:59:59')<t;if(late&&!['Submitted','Approved','Rejected','Skipped','Overdue'].includes(e.status)){e.status='Overdue';e.history=e.history||[];e.history.push({time:now(),action:'Overdue',by:'System',details:'Due date passed without submission.'});changed=true}}));if(changed)localStorage.setItem('cewf_v6',JSON.stringify(S));}
+function refreshOverdueStatuses(){let changed=false;let t=new Date();(S.parts||[]).forEach(p=>(p.ppap||[]).forEach(e=>{if(!e.applicable||!e.dueDate)return;let late=new Date(e.dueDate+'T23:59:59')<t;if(late&&!['Submitted','Approved','Rejected','Skipped','Overdue'].includes(e.status)){e.status='Overdue';e.history=e.history||[];e.history.push({time:now(),action:'Overdue',by:'System',details:'Due date passed without submission.'});changed=true}}));if(changed)save();}
 function render(){if(!S.user)return;refreshOverdueStatuses();userinfo.innerHTML='<b>'+esc(S.user.username)+'</b><div style="font-size:9px;color:#777">'+esc(S.user.department)+' · Emp. '+esc(S.user.employee)+'</div>';avatar.textContent=S.user.username[0].toUpperCase();let tp=part();document.getElementById('topactive').innerHTML=tp?'<div class="top-active-part"><div><small>ACTIVE PART</small><strong>'+esc(tp.partNo)+' · '+esc(tp.partName)+'</strong><span style="display:block;font-size:9px;color:#5c7390;margin-top:3px">PPAP Level: '+esc(tp.level||'Level 3')+' · Owner: '+esc(tp.owner||'—')+'</span></div><div class="top-online">System Online</div></div>':'';updateHodBadge();document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.p===S.page));let f={home:home,parts:parts,ppap:ppap,artifact:artifact,track:track,history:history,alerts:alerts,hodPortal:hodPortal}[S.page]||home;main.innerHTML=f()}
 function home(){
   let p=part(), pc=p?curStatus(p):0, c=p?counts(p):null;
@@ -676,4 +715,13 @@ function artToggle(g,i,v){let x=part().artifact[g].items[i];x.done=v;x.history.p
 function history(){let p=part();if(!p)return '<div class="empty"><h2>Select a registered part</h2><button class="primary" onclick="page(\'parts\')">Select Part</button></div>';return '<div class="head"><div><h1>History & Audit Trail</h1><p>Submitted by, approved by, rejected by, checklist and document actions.</p></div></div><div class="card"><div class="timeline">'+(p.history.slice().reverse().map(h=>'<div class="timelineitem"><strong>'+esc(h.action)+' — '+esc(h.by)+'</strong><p>'+esc(h.time)+' · '+esc(h.details||'')+'</p></div>').join('')||'<div class="empty">No history yet.</div>')+'</div></div>'}
 function alerts(){let p=part();if(!p)return '<div class="empty"><h2>Select a registered part</h2><button class="primary" onclick="page(\'parts\')">Select Part</button></div>';let a=p.ppap.filter(e=>e.applicable&&e.dueDate&&new Date(e.dueDate)<new Date()&&!['Submitted','Approved'].includes(e.status));return '<div class="head"><div><h1>Alerts & Deadlines</h1><p>Late submission alerts and deadline monitoring.</p></div></div><div class="card">'+(a.length?a.map(e=>'<div class="alert danger"><b>'+esc(e.name)+'</b> — deadline '+esc(e.dueDate)+' · '+esc(e.status)+' · '+esc(e.assignedTo)+'</div>').join(''):'<div class="alert ok">No overdue active PPAP elements detected.</div>')+'</div><div class="section"><h2>All Active Deadlines</h2></div><div class="tablewrap"><table><thead><tr><th>Element</th><th>Due</th><th>Owner</th><th>Status</th></tr></thead><tbody>'+p.ppap.filter(e=>e.applicable).map(e=>'<tr><td>'+esc(e.name)+'</td><td>'+esc(e.dueDate||'—')+'</td><td>'+esc(e.assignedTo)+'</td><td>'+badge(e.status)+'</td></tr>').join('')+'</tbody></table></div>'}
 if(S.user){S.page='home';save();login.style.display='none';app.style.display='block';render()}
-</script></body></html>
+</script>
+<script>
+window.addEventListener('DOMContentLoaded',()=>{
+  loadGoogleState().then(ok=>{
+    if(ok){ updateHodBadge(); }
+    else { console.warn('Google Sheet state not loaded; using empty in-memory state.'); }
+  });
+});
+</script>
+</body></html>
